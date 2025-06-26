@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guarda-Roupa da Sophia</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Guarda-Roupa da Sophia</h1>
+        
+        <div class="form-container">
+            <h2>Adicionar Nova Roupa</h2>
+            <form id="roupa-form">
+                <div class="form-group">
+                    <label for="tipo">Tipo:</label>
+                    <select id="tipo" required>
+                        <option value="">Selecione</option>
+                        <option value="Vestido">Vestido</option>
+                        <option value="Camiseta">Camiseta</option>
+                        <option value="Calça">Calça</option>
+                        <option value="Shorts">Shorts</option>
+                        <option value="Saia">Saia</option>
+                        <option value="Pijama">Pijama</option>
+                        <option value="Casaco">Casaco</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tamanho">Tamanho:</label>
+                    <input type="text" id="tamanho" required>
+                </div>
+                <div class="form-group">
+                    <label for="cor">Cor:</label>
+                    <input type="text" id="cor" required>
+                </div>
+                <div class="form-group">
+                    <label for="estado">Estado:</label>
+                    <select id="estado" required>
+                        <option value="">Selecione</option>
+                        <option value="Nova">Nova</option>
+                        <option value="Boa">Boa</option>
+                        <option value="Usada">Usada</option>
+                        <option value="Precisa trocar">Precisa trocar</option>
+                    </select>
+                </div>
+                <button type="submit">Adicionar</button>
+            </form>
+        </div>
+
+        <div class="filter-container">
+            <h2>Filtrar Roupas</h2>
+            <div class="filter-options">
+                <select id="filtro-tipo">
+                    <option value="">Todos os tipos</option>
+                    <option value="Vestido">Vestido</option>
+                    <option value="Camiseta">Camiseta</option>
+                    <option value="Calça">Calça</option>
+                    <option value="Shorts">Shorts</option>
+                    <option value="Saia">Saia</option>
+                    <option value="Pijama">Pijama</option>
+                    <option value="Casaco">Casaco</option>
+                    <option value="Outro">Outro</option>
+                </select>
+                <select id="filtro-estado">
+                    <option value="">Todos os estados</option>
+                    <option value="Nova">Nova</option>
+                    <option value="Boa">Boa</option>
+                    <option value="Usada">Usada</option>
+                    <option value="Precisa trocar">Precisa trocar</option>
+                </select>
+                <button id="aplicar-filtro">Filtrar</button>
+            </div>
+        </div>
+
+        <div class="lista-container">
+            <h2>Lista de Roupas</h2>
+            <table id="tabela-roupas">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Tamanho</th>
+                        <th>Cor</th>
+                        <th>Estado</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-roupas">
+                    <!-- Itens serão adicionados aqui via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

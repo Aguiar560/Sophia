@@ -1,0 +1,29 @@
+INSTRUÇÕES PARA CONFIGURAR O BANCO DE DADOS MANUALMENTE
+
+1. Abra o MySQL Workbench
+
+2. Conecte ao seu servidor MySQL local:
+   - Hostname: localhost
+   - Port: 3306
+   - Username: root
+   - Password: 1452
+
+3. Crie um novo banco de dados:
+   - Clique com o botão direito em "Schemas" no painel lateral
+   - Selecione "Create Schema..."
+   - Digite "sophia_db" como nome
+   - Clique em "Apply"
+
+4. Execute o script SQL:
+   - Clique em "File" > "Open SQL Script..."
+   - Navegue até a pasta do projeto e abra o arquivo "server\setup.sql"
+   - Clique no ícone de raio para executar o script
+
+5. Verifique se as tabelas foram criadas:
+   - Expanda o schema "sophia_db" no painel lateral
+   - Expanda a pasta "Tables"
+   - Você deve ver as tabelas: Cores, Roupas, Tamanhos e Tipos
+
+6. Verifique se os dados foram inseridos:
+   - Clique com o botão direito em cada tabela e selecione "Select Rows - Limit 1000"
+   - Você deve ver os dados inseridos em cada tabela

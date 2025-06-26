@@ -1,0 +1,19 @@
+.loading, .error {
+  background-color: white;
+  padding: 30px;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(255, 182, 193, 0.2);
+  margin-top: 20px;
+}
+
+.loading {
+  color: #2575fc;
+  font-size: 18px;
+}
+
+.error {
+  color: #f44336;
+  font-size: 16px;
+  padding: 20px;
+}

@@ -1,0 +1,381 @@
+import React, { useState, useEffect } from 'react';
+import './App.css';
+import './components/Loading.css';
+import './components/notification.css';
+import './components/scrollable-list.css';
+import ClothingForm from './components/ClothingForm';
+import ClothingList from './components/ClothingList';
+import FilterBar from './components/FilterBar';
+import { fetchClothes, fetchTypes, fetchColors, fetchSizes, addClothing, updateClothing, deleteClothing, ClothingData, TypeData, ColorData, SizeData } from './services/api';
+
+export interface Clothing extends ClothingData {}
+
+function App() {
+  const [clothes, setClothes] = useState<Clothing[]>([]);
+  const [filteredClothes, setFilteredClothes] = useState<Clothing[]>([]);
+  const [filters, setFilters] = useState({
+    type: '',
+    color: '',
+    size: ''
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<{key: keyof Clothing, direction: 'asc' | 'desc'} | null>(null);
+  const [currentView, setCurrentView] = useState<'menu' | 'register' | 'wardrobe'>('menu');
+  
+  // Estados para os dados do banco
+  const [types, setTypes] = useState<TypeData[]>([]);
+  const [colors, setColors] = useState<ColorData[]>([]);
+  const [sizes, setSizes] = useState<SizeData[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
+  
+  // Função para mostrar notificações
+  const showNotification = (type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    
+    // Remover a notificação após 3 segundos
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
+
+  // Carregar dados da API quando o componente montar
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Carregar tipos, cores e tamanhos
+        const [typesData, colorsData, sizesData, clothesData] = await Promise.all([
+          fetchTypes(),
+          fetchColors(),
+          fetchSizes(),
+          fetchClothes()
+        ]);
+        
+        setTypes(typesData);
+        setColors(colorsData);
+        setSizes(sizesData);
+        setClothes(clothesData);
+        setFilteredClothes(clothesData);
+        
+        setLoading(false);
+      } catch (err) {
+        setError('Erro ao carregar dados. Verifique se o servidor está rodando.');
+        setLoading(false);
+        console.error('Erro ao carregar dados:', err);
+      }
+    };
+    
+    loadData();
+  }, []);
+  
+  // Aplicar filtros quando clothes mudar
+  useEffect(() => {
+    applyFilters();
+  }, [clothes]);
+
+  // Aplicar filtros quando os filtros ou termo de busca mudarem
+  useEffect(() => {
+    applyFilters();
+  }, [filters, searchTerm]);
+
+  const handleAddClothing = async (clothing: { type: string, color: string, size: string, quantity?: number }) => {
+    try {
+      // Encontrar os IDs correspondentes
+      const typeObj = types.find(t => t.nome === clothing.type);
+      const colorObj = colors.find(c => c.nome === clothing.color);
+      const sizeObj = sizes.find(s => s.nome === clothing.size);
+      
+      if (!typeObj || !colorObj || !sizeObj) {
+        throw new Error('Tipo, cor ou tamanho inválido');
+      }
+      
+      // Obter a quantidade
+      const quantity = clothing.quantity || 1;
+      
+      // Adicionar ao banco de dados (múltiplas vezes baseado na quantidade)
+      for (let i = 0; i < quantity; i++) {
+        await addClothing(typeObj.id, colorObj.id, sizeObj.id);
+      }
+      
+      // Recarregar as roupas
+      const updatedClothes = await fetchClothes();
+      setClothes(updatedClothes);
+      
+      return true;
+    } catch (error) {
+      console.error('Erro ao adicionar roupa:', error);
+      return false;
+    }
+  };
+
+  const handleUpdateClothing = async (id: string, updatedClothing: { type: string, color: string, size: string }) => {
+    try {
+      // Encontrar os IDs correspondentes
+      const typeObj = types.find(t => t.nome === updatedClothing.type);
+      const colorObj = colors.find(c => c.nome === updatedClothing.color);
+      const sizeObj = sizes.find(s => s.nome === updatedClothing.size);
+      
+      if (!typeObj || !colorObj || !sizeObj) {
+        throw new Error('Tipo, cor ou tamanho inválido');
+      }
+      
+      // Atualizar no banco de dados
+      await updateClothing(id, typeObj.id, colorObj.id, sizeObj.id);
+      
+      // Recarregar as roupas
+      const updatedClothes = await fetchClothes();
+      setClothes(updatedClothes);
+      
+      return true;
+    } catch (error) {
+      console.error('Erro ao atualizar roupa:', error);
+      return false;
+    }
+  };
+
+  const handleDeleteClothing = async (id: string) => {
+    try {
+      // Excluir do banco de dados
+      await deleteClothing(id);
+      
+      // Atualizar o estado local
+      setClothes(clothes.filter(item => item.id !== id));
+      
+      return true;
+    } catch (error) {
+      console.error('Erro ao excluir roupa:', error);
+      return false;
+    }
+  };
+
+  const applyFilters = () => {
+    let filtered = [...clothes];
+    
+    // Aplicar filtros
+    if (filters.type) {
+      filtered = filtered.filter(item => item.type === filters.type);
+    }
+    
+    if (filters.color) {
+      filtered = filtered.filter(item => item.color === filters.color);
+    }
+    
+    if (filters.size) {
+      filtered = filtered.filter(item => item.size === filters.size);
+    }
+    
+    // Aplicar busca
+    if (searchTerm.trim() !== '') {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.type.toLowerCase().includes(term) || 
+        item.color.toLowerCase().includes(term) || 
+        item.size.toLowerCase().includes(term)
+      );
+    }
+    
+    // Aplicar ordenação
+    if (sortConfig) {
+      filtered.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    
+    setFilteredClothes(filtered);
+  };
+
+  const handleFilterChange = (filterName: string, value: string) => {
+    setFilters({
+      ...filters,
+      [filterName]: value
+    });
+  };
+  
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+  
+  const handleSort = (key: keyof Clothing) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    
+    setSortConfig({ key, direction });
+    applyFilters();
+  };
+  
+  const clearFilters = () => {
+    setFilters({
+      type: '',
+      color: '',
+      size: ''
+    });
+    setSearchTerm('');
+  };
+
+  // Renderiza o menu principal
+  const renderMenu = () => (
+    <div className="menu-container">
+      <div className="menu-card">
+        <h2>Bem-vinda ao Guarda-Roupa da Sophia</h2>
+        <p className="welcome-text">
+          Este aplicativo ajuda a gerenciar as roupas da Sophia de forma organizada.
+          Use o menu acima para navegar entre as diferentes seções.
+        </p>
+        <div className="menu-options">
+          <div className="feature-card">
+            <h3>Cadastrar Roupas</h3>
+            <p>Adicione novas peças de roupa ao guarda-roupa</p>
+            <button 
+              className="menu-button register-button"
+              onClick={() => setCurrentView('register')}
+            >
+              Ir para Cadastro
+            </button>
+          </div>
+          <div className="feature-card">
+            <h3>Guarda-Roupa</h3>
+            <p>Visualize, filtre e gerencie as roupas cadastradas</p>
+            <button 
+              className="menu-button wardrobe-button"
+              onClick={() => setCurrentView('wardrobe')}
+            >
+              Ver Guarda-Roupa
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Renderiza a tela de cadastro
+  const renderRegister = () => (
+    <div className="register-container">
+      <div className="view-header">
+        <h2>Cadastro de Roupas</h2>
+      </div>
+      <ClothingForm 
+        onSubmit={async (clothing) => {
+          const success = await handleAddClothing(clothing);
+          if (success) {
+            showNotification('success', `${clothing.quantity > 1 ? clothing.quantity + ' peças' : 'Peça'} cadastrada${clothing.quantity > 1 ? 's' : ''} com sucesso!`);
+          } else {
+            showNotification('error', 'Erro ao cadastrar roupa. Tente novamente.');
+          }
+        }}
+        types={types.map(t => t.nome)}
+        colors={colors.map(c => c.nome)}
+        sizes={sizes.map(s => s.nome)}
+      />
+    </div>
+  );
+
+  // Renderiza a tela do guarda-roupa
+  const renderWardrobe = () => (
+    <>
+      <div className="view-header">
+        <h2>Guarda-Roupa da Sophia</h2>
+      </div>
+      <div className="app-content">
+        <div className="left-panel">
+          <div className="search-container">
+            <div className="search-wrapper">
+              <input
+                type="text"
+                placeholder="Buscar roupinhas da Sophia..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="search-input"
+              />
+              <span className="search-icon"></span>
+            </div>
+          </div>
+          <FilterBar 
+            filters={filters} 
+            onFilterChange={handleFilterChange}
+            onClearFilters={clearFilters}
+            types={types.map(t => t.nome)}
+            colors={colors.map(c => c.nome)}
+            sizes={sizes.map(s => s.nome)}
+          />
+        </div>
+        <div className="right-panel">
+          <div className="results-header">
+            <div className="results-count">
+              {filteredClothes.length} {filteredClothes.length === 1 ? 'item' : 'itens'} encontrados
+            </div>
+          </div>
+          {loading ? (
+            <div className="loading">Carregando...</div>
+          ) : error ? (
+            <div className="error">{error}</div>
+          ) : (
+            <ClothingList 
+              clothes={filteredClothes} 
+              onUpdate={handleUpdateClothing} 
+              onDelete={handleDeleteClothing}
+              onSort={handleSort}
+              sortConfig={sortConfig}
+            />
+          )}
+        </div>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="app">
+      {notification && (
+        <div className={`notification ${notification.type}`}>
+          <div className="notification-content">
+            {notification.type === 'success' && <span className="notification-icon">✓</span>}
+            {notification.type === 'error' && <span className="notification-icon">✕</span>}
+            <span>{notification.message}</span>
+          </div>
+        </div>
+      )}
+      <header className="app-header">
+        <h1>Guarda-Roupa da Sophia</h1>
+        <nav className="main-nav">
+          <button 
+            className={`nav-button ${currentView === 'menu' ? 'active' : ''}`}
+            onClick={() => setCurrentView('menu')}
+          >
+            Menu Principal
+          </button>
+          <button 
+            className={`nav-button ${currentView === 'register' ? 'active' : ''}`}
+            onClick={() => setCurrentView('register')}
+          >
+            Cadastrar Roupas
+          </button>
+          <button 
+            className={`nav-button ${currentView === 'wardrobe' ? 'active' : ''}`}
+            onClick={() => setCurrentView('wardrobe')}
+          >
+            Guarda-Roupa
+          </button>
+        </nav>
+      </header>
+      <main className="main-container">
+        {currentView === 'menu' && renderMenu()}
+        {currentView === 'register' && renderRegister()}
+        {currentView === 'wardrobe' && renderWardrobe()}
+      </main>
+    </div>
+  );
+}
+
+export default App;
