@@ -1,75 +1,49 @@
 # Guarda-Roupa da Sophia
 
-Aplicativo para gerenciar o guarda-roupa da Sophia, desenvolvido com React, TypeScript e MySQL.
+Aplicativo para gerenciar o guarda-roupa da Sophia e armazenar vídeos de ultrasom.
 
 ## Funcionalidades
 
-- Adicionar novas peças de roupa
-- Editar peças existentes
-- Excluir peças
-- Filtrar por tipo, cor e tamanho
-- Persistência de dados em banco MySQL
+- Cadastro de roupas com tipo, tamanho e cor
+- Visualização e filtragem das roupas cadastradas
+- Upload e visualização de vídeos de ultrasom
+- Interface amigável e responsiva
 
-## Requisitos
+## Como executar o aplicativo
 
-- Node.js (versão 14 ou superior)
-- MySQL (versão 5.7 ou superior)
+### Modo sem servidor (atual)
 
-## Configuração do Banco de Dados
+O aplicativo está configurado para funcionar sem servidor, usando dados mockados.
 
-1. Certifique-se de que o MySQL está instalado e em execução
-2. Configure o banco de dados usando o script SQL fornecido:
-   ```
-   mysql -u root -p1452 < server/setup.sql
-   ```
-   Ou abra o arquivo `server/setup.sql` em um cliente MySQL e execute-o
+```bash
+# Instalar dependências
+npm install
 
-## Como executar
+# Iniciar o aplicativo
+npm start
+```
 
-1. Clone este repositório
-2. Instale as dependências:
-   ```
-   npm install
-   ```
-3. Inicie o servidor backend:
-   ```
-   npm run server
-   ```
-4. Em outro terminal, inicie o frontend:
-   ```
+### Modo com servidor (configuração futura)
+
+Para usar o aplicativo com o servidor e banco de dados:
+
+1. Configure o banco de dados MySQL:
+   - Execute o script `server/setup-database.bat`
+   - Ou importe manualmente o arquivo `server/setup-database.sql`
+
+2. Inicie o servidor:
+   - Execute o script `server/start-server.bat`
+   - Ou execute `node server/server.js`
+
+3. Inicie o aplicativo:
+   ```bash
    npm start
    ```
-5. Ou execute ambos simultaneamente:
-   ```
-   npm run dev
-   ```
-6. Abra [http://localhost:3000](http://localhost:3000) no navegador
-
-## Estrutura do Projeto
-
-- `src/` - Código fonte do frontend React
-- `server/` - Código fonte do backend Node.js
-  - `server.js` - Servidor Express
-  - `db.js` - Conexão com o banco de dados MySQL
-  - `setup.sql` - Script para configuração do banco de dados
 
 ## Tecnologias utilizadas
 
 - React
 - TypeScript
-- Node.js
-- Express
-- MySQL
-- Axios para chamadas de API
-
-## Configuração do Banco de Dados
-
-O aplicativo está configurado para conectar ao MySQL com as seguintes credenciais:
-
-- Username: root
-- Hostname: localhost
-- Port: 3306
-- Password: 1452
-- Database: sophia_db
-
-Se você precisar alterar essas configurações, edite o arquivo `server/db.js`.
+- CSS
+- Express (servidor)
+- MySQL (banco de dados)

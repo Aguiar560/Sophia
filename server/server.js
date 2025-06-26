@@ -93,6 +93,8 @@ app.delete('/api/clothes/:id', async (req, res) => {
   }
 });
 
+
+
 // Iniciar o servidor
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
